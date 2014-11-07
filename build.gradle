@@ -1,6 +1,6 @@
 apply plugin: 'war'
 
-sourceCompatibility = 1.8
+sourceCompatibility = JavaVersion.VERSION_1_8
 version = '1.0'
 
 repositories {
@@ -14,7 +14,18 @@ dependencies {
      'spring-web',
      'spring-webmvc',
      'spring-beans',
-     'spring-websocket'].each { runtime "org.springframework:$it:4.0.6.RELEASE" }
+     'spring-websocket'].each { compile "org.springframework:$it:4.1.1.RELEASE" }
 
+    // Kurento client
+    ['kurento-client',
+     'kurento-client-js'].each { compile "org.kurento:$it:5.0.4" }
+
+    // Jackson
+    ['jackson-core', 'jackson-databind'].each { compile "com.fasterxml.jackson.core:$it:2.4.2" }
+
+    // Servlet API
+    providedCompile "javax.servlet:javax.servlet-api:3.0.1"
+
+    // JUnit
     testCompile group: 'junit', name: 'junit', version: '4.11'
 }
