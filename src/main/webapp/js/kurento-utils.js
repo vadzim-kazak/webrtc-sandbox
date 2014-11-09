@@ -67,7 +67,7 @@ function noop() {
 function WebRtcPeer(mode, localVideo, remoteVideo, onsdpoffer, onerror,
 		videoStream, audioStream) {
 
-	Object.defineProperty(this, 'pc', {
+	Object.defineProperty(this, 'firstPeerConnection', {
 		writable : true
 	});
 
@@ -160,7 +160,7 @@ WebRtcPeer.prototype.dispose = function() {
 	console.log('Disposing WebRtcPeer');
 
 	// FIXME This is not yet implemented in firefox
-	// if (this.stream) this.pc.removeStream(this.stream);
+	// if (this.stream) this.firstPeerConnection.removeStream(this.stream);
 
 	// For old browsers, PeerConnection.close() is NOT idempotent and raise
 	// error. We check its signaling state and don't close it if it's already

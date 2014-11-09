@@ -51,6 +51,9 @@ function onOffer(sdpOffer) {
         },
         error : function(jqXHR, textStatus, error) {
             onError(error);
+        },
+        complete : function(status) {
+            console.log("Received status: " + status);
         }
     });
 }
