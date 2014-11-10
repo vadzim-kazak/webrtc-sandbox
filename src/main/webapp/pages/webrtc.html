@@ -7,14 +7,21 @@
         body { height: 100%; margin: 0; background: #111; text-align: center; }
         #remoteVideo { height: 70%; margin-top: 5%; background: #000; }
         #localVideo { width: 20%; position: absolute; right: 1.1em; bottom: 1em; border: 1px solid #333; background: #000; }
+        #startStreaming { position: absolute; left: 25%; font-size: 2em; bottom: 5%; border-radius: 1em; }
         #callButton { position: absolute; left: 50%; font-size: 2em; bottom: 5%; border-radius: 1em; }
     </style>
+
+    <script src="/js/require.js" data-main="/js/app"></script>
+
 </head>
-<script src="../js/jquery.js"></script>
-<script src="/js/old/kurento121.js"></script>
+
+<body>
 
 <video id="preview" autoplay></video>
 <video id="otherPeer" autoplay></video>
-<button id="callButton" onclick="createOffer()">✆</button>
+<button id="startStreaming">preview</button>
+<button id="callButton">call</button>
+
+</body>
 
 </html>

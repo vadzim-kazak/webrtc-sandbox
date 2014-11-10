@@ -12,34 +12,40 @@ define(['jquery'], function($) {
         this.onSocketMessageHandler;
 
         /** **/
+        this.onSocketMessageHandler;
+
+        /** **/
         this.onSocketClosedHandler;
 
         /** **/
         this.onSocketNotSupportedHandler;
 
+        /** **/
+        var socket;
+
         $(document).ready(function() {
 
             if ('WebSocket' in window) {
 
-                var socket = new WebSocket(socketUrl);
+                socket = new WebSocket(socketUrl);
 
                 socket.onopen = function(){
                     console.log('Socket has been opened...');
-                    if (onSocketOpenedHandler) {
+                    if (this.onSocketOpenedHandler) {
                         onSocketOpenedHandler();
                     }
                 }
 
                 socket.onclose = function(closeEvent){
                     console.log('Socket has been closed...');
-                    if (onSocketClosedHandler) {
+                    if (this.onSocketClosedHandler) {
                         onSocketClosedHandler();
                     }
 
-                    // Safari hack
+                    // Safari case handler
                     if (!closeEvent.wasClean) {
                         console.error('Socket not supported error');
-                        if (onSocketNotSupportedHandler) {
+                        if (this.onSocketNotSupportedHandler) {
                             onSocketNotSupportedHandler();
                         }
                     }
@@ -47,7 +53,7 @@ define(['jquery'], function($) {
 
                 socket.onmessage = function (event){
                      console.log('Proceed socket message: ' + JSON.stringify(event));
-                     if (onSocketMessageHandler) {
+                     if (this.onSocketMessageHandler) {
                          onSocketMessageHandler(event);
                      }
                 }
@@ -55,9 +61,16 @@ define(['jquery'], function($) {
             } else {
 
                 console.error('Socket not supported error');
-                if (onSocketNotSupportedHandler) {
+                if (this.onSocketNotSupportedHandler) {
                     onSocketNotSupportedHandler();
                 }
+            }
+
+            this.send = function(message) {
+
+                var payload = JSON.stringify(message);
+                console.error('Sending message via socket: ' + payload);
+                socket.send(payload);
             }
         });
     }
