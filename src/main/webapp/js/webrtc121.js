@@ -29,18 +29,18 @@ $(document).ready(function() {
             if (message.type == "candidate") {
                 console.log("Remote ice candidate recieved: " + message.payload);
                 var iceCandidate = new IceCandidate(payload);
-                pc.addIceCandidate(iceCandidate);
+                peerConnection.addIceCandidate(iceCandidate);
             } else if(message.type == "offer") {
                 console.log("Remote local description recieved: " + message.payload);
-                pc.setRemoteDescription(new SessionDescription(payload), function() {
-                    pc.createAnswer(function(answerSDP) {
-                        pc.setLocalDescription(answerSDP, function() {
+                peerConnection.setRemoteDescription(new SessionDescription(payload), function() {
+                    peerConnection.createAnswer(function(answerSDP) {
+                        peerConnection.setLocalDescription(answerSDP, function() {
                             sendLocalDescription('answer', answerSDP);
                         })
                     })
                 });
             } else if (message.type == "answer") {
-                pc.setRemoteDescription(new SessionDescription(payload));
+                peerConnection.setRemoteDescription(new SessionDescription(payload));
             }
         }
 
@@ -78,10 +78,10 @@ function showLocalVideo() {
             ]
         }
 
-        pc = new PeerConnection(configuration, options);
-        pc.addStream(stream);
+        peerConnection = new PeerConnection(configuration, options);
+        peerConnection.addStream(stream);
 
-        pc.onicecandidate = function (event) {
+        peerConnection.onicecandidate = function (event) {
             console.log("onicecandidate callback");
             if (event.candidate) {
 
@@ -91,14 +91,14 @@ function showLocalVideo() {
                 }));
 
                 // Get only first ice candidate
-                pc.onicecandidate = null;
+                peerConnection.onicecandidate = null;
 
             } else {
                 console.error("Couldn't get self ice candidate");
             }
         };
 
-        pc.onaddstream = function(event){
+        peerConnection.onaddstream = function(event){
             document.getElementById("otherPeer").src = URL.createObjectURL(event.stream);
         }
 
@@ -113,9 +113,9 @@ function createOffer() {
 
     console.log("Invocation of createOffer function");
 
-        pc.createOffer(function (offerSDP) {
+        peerConnection.createOffer(function (offerSDP) {
             console.log("Create offerSDP callback");
-            pc.setLocalDescription(offerSDP);
+            peerConnection.setLocalDescription(offerSDP);
             sendLocalDescription('offer', offerSDP);
         }, errorHandler, constraints);
 

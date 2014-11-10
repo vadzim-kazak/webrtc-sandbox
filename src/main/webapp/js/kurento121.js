@@ -45,11 +45,11 @@ function showLocalVideo() {
             ]
         }
 
-        pc = new PeerConnection(configuration, options);
-        pc.addStream(stream);
+        peerConnection = new PeerConnection(configuration, options);
+        peerConnection.addStream(stream);
 
         var ended = false;
-        pc.onicecandidate = function (event) {
+        peerConnection.onicecandidate = function (event) {
             console.log("onicecandidate callback");
 
             if (event.candidate) {
@@ -67,7 +67,7 @@ function showLocalVideo() {
             ended = true;
         };
 
-        pc.onaddstream = function(event){
+        peerConnection.onaddstream = function(event){
             document.getElementById("otherPeer").src = URL.createObjectURL(event.stream);
         }
 
@@ -82,9 +82,9 @@ function createOffer() {
 
     console.log("Invocation of createOffer function");
 
-    pc.createOffer(function (offerSDP) {
+    peerConnection.createOffer(function (offerSDP) {
         console.log("Create offerSDP callback");
-        pc.setLocalDescription(offerSDP);
+        peerConnection.setLocalDescription(offerSDP);
     }, errorHandler, constraints);
 
 
@@ -108,7 +108,7 @@ function sendOffer() {
         type : 'POST',
         dataType : 'text',
         contentType : 'application/sdp',
-        data : pc.localDescription.sdp,
+        data : peerConnection.localDescription.sdp,
         success : function(answerSDP) {
             console.log("Received answerSDP from server. Processing ...");
 
@@ -117,7 +117,7 @@ function sendOffer() {
                 sdp : answerSDP
             });
 
-            pc.setRemoteDescription(answer);
+            peerConnection.setRemoteDescription(answer);
         },
         error : function(jqXHR, textStatus, error) {
             onError(error);

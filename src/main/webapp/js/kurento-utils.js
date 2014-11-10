@@ -94,11 +94,11 @@ WebRtcPeer.prototype.start = function() {
 
 	var self = this;
 
-	if (!this.pc) {
-		this.pc = new RTCPeerConnection(this.server, this.options);
+	if (!this.peerConnection) {
+		this.peerConnection = new RTCPeerConnection(this.server, this.options);
 	}
 
-	var pc = this.pc;
+	var pc = this.peerConnection;
 
 	if (this.stream && this.localVideo) {
 		this.localVideo.src = URL.createObjectURL(this.stream);
@@ -106,11 +106,11 @@ WebRtcPeer.prototype.start = function() {
 	}
 
 	if (this.stream) {
-		pc.addStream(this.stream);
+		peerConnection.addStream(this.stream);
 	}
 
 	if (this.audioStream) {
-		pc.addStream(this.audioStream);
+		peerConnection.addStream(this.audioStream);
 	}
 
 	this.constraints = {
@@ -120,16 +120,16 @@ WebRtcPeer.prototype.start = function() {
 		}
 	};
 
-	pc.createOffer(function(offer) {
+	peerConnection.createOffer(function(offer) {
 		console.log('Created SDP offer');
-		pc.setLocalDescription(offer, function() {
+		peerConnection.setLocalDescription(offer, function() {
 			console.log('Local description set');
 		}, self.onerror);
 
 	}, this.onerror, this.constraints);
 
 	var ended = false;
-	pc.onicecandidate = function(e) {
+	peerConnection.onicecandidate = function(e) {
 		// candidate exists in e.candidate
 		if (e.candidate) {
 			ended = false;
@@ -140,7 +140,7 @@ WebRtcPeer.prototype.start = function() {
 			return;
 		}
 
-		var offerSdp = pc.localDescription.sdp;
+		var offerSdp = peerConnection.localDescription.sdp;
 		console.log('ICE negotiation completed');
 
 		self.onsdpoffer(offerSdp, self);
@@ -165,8 +165,8 @@ WebRtcPeer.prototype.dispose = function() {
 	// For old browsers, PeerConnection.close() is NOT idempotent and raise
 	// error. We check its signaling state and don't close it if it's already
 	// closed
-	if (this.pc && this.pc.signalingState != 'closed')
-		this.pc.close();
+	if (this.peerConnection && this.peerConnection.signalingState != 'closed')
+		this.peerConnection.close();
 
 	if (this.localVideo)
 		this.localVideo.src = '';
@@ -215,9 +215,9 @@ WebRtcPeer.prototype.processSdpAnswer = function(sdpAnswer) {
 
 	console.log('SDP answer received, setting remote description');
 	var self = this;
-	self.pc.setRemoteDescription(answer, function() {
+	self.peerConnection.setRemoteDescription(answer, function() {
 		if (self.remoteVideo) {
-			var stream = self.pc.getRemoteStreams()[0];
+			var stream = self.peerConnection.getRemoteStreams()[0];
 			self.remoteVideo.src = URL.createObjectURL(stream);
 		}
 	}, this.onerror);
