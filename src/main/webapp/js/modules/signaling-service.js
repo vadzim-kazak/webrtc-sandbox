@@ -4,7 +4,7 @@
 /**
  * Created by Kazak_VV on 10.11.2014.
  */
-define(['modules/web-socket'], function(WebSocket) {
+define(['modules/web-socket'], function(WebSocketWrapper) {
 
     return function (webSocketUrl) {
 
@@ -14,13 +14,16 @@ define(['modules/web-socket'], function(WebSocket) {
         /** **/
         this.onAnswerHandler;
 
-        var webSocket = new WebSocket(webSocketUrl);
+        /** **/
+        var context = this;
+
+        var webSocket = new WebSocketWrapper(webSocketUrl);
 
         this.sendOffer = function (offerSdp) {
 
             var offer = {
                 type: 'offer',
-                payload: JSON.stringify(offerSdp)
+                payload: offerSdp
             }
 
             webSocket.send(offer);
@@ -30,7 +33,7 @@ define(['modules/web-socket'], function(WebSocket) {
 
             var answer = {
                 type: 'answer',
-                payload: JSON.stringify(answerSdp)
+                payload: answerSdp
             }
 
             webSocket.send(answer);
@@ -38,19 +41,19 @@ define(['modules/web-socket'], function(WebSocket) {
 
         webSocket.onSocketMessageHandler = function (webSocketMessage) {
 
-            var message = JSON.parse(webSocketMessage);
+            var message = JSON.parse(webSocketMessage.data);
             var payload = message.payload;
+            var type = message.type;
 
-            if (type == 'offer' && onOfferHandler) {
+            if (type == 'offer' && context.onOfferHandler) {
                 console.log('Received offer message');
-                onOfferHandler(payload);
+                context.onOfferHandler(payload);
 
-            } else if (type == 'answer' && onAnswerHandler) {
+            } else if (type == 'answer' && context.onAnswerHandler) {
                 console.log('Received answer message');
-                onAnswerHandler(payload)
+                context.onAnswerHandler(payload)
             }
         }
-
 
     }
 
