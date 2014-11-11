@@ -8,9 +8,11 @@ define(['modules/web-rtc-config'], function(configuration) {
         /** **/
         this.incomingStreamHandler;
 
+        var context = this;
+
         /**
          * It is assumed that signaling service has two methods:
-         * sendOffer(offerSdp)
+         * processIceNegotiationCompleted(offerSdp)
          * sendAnswer(answerSdp)
          * and two public properties:
          * onOfferHandler
@@ -40,8 +42,8 @@ define(['modules/web-rtc-config'], function(configuration) {
         this.startStreaming = function (selfVideoContainer) {
 
             var mediaOptions = {
-                video: true,
-                audio: true
+                video: true //,
+                //audio: true
             };
 
             var getUserMediaErrorHandler = function (error) {
@@ -82,17 +84,28 @@ define(['modules/web-rtc-config'], function(configuration) {
                     console.log('ICE negotiation completed.');
                     isIceNegotiationCompleted = true;
 
-                    sendOffer();
+                    processIceNegotiationCompleted();
                 };
 
                 peerConnection.onaddstream = function(event){
-                    if (incomingStreamHandler) {
+                    if (context.incomingStreamHandler) {
                         console.log('Processing onaddstream event.');
-                        incomingStreamHandler(event);
+                        context.incomingStreamHandler(event);
                     }
                 }
 
             }, getUserMediaErrorHandler);
+        };
+
+        var errorHandler = function (error) {
+            console.error(error);
+        };
+
+        var constraints = {
+            mandatory: {
+                // OfferToReceiveAudio: true,
+                OfferToReceiveVideo: true
+            }
         };
 
         /**
@@ -101,17 +114,6 @@ define(['modules/web-rtc-config'], function(configuration) {
         this.shareStream = function () {
 
             console.log("Perform share stream action.");
-
-            var errorHandler = function (error) {
-                console.error(error);
-            };
-
-            var constraints = {
-                mandatory: {
-                    OfferToReceiveAudio: true,
-                    OfferToReceiveVideo: true
-                }
-            };
 
             console.log("Creating local stream offer");
             peerConnection.createOffer(function (offerSDP) {
@@ -133,10 +135,18 @@ define(['modules/web-rtc-config'], function(configuration) {
         /**
          *
          */
-        var sendOffer = function () {
+        var processIceNegotiationCompleted = function () {
             if (signalingService) {
-                console.log("Sending offer SDP.");
-                signalingService.sendOffer(peerConnection.localDescription.sdp);
+
+                var sdp = peerConnection.localDescription.sdp;
+                if (peerConnection.localDescription.type == 'offer') {
+                    console.log("Sending offer SDP.");
+                    signalingService.sendOffer(sdp);
+                } else if (peerConnection.localDescription.type == 'answer') {
+                    console.log("Sending answer SDP.");
+                    signalingService.sendAnswer(sdp);
+                }
+
             } else {
                 console.log("Please specify signaling processor in order to send offer sdp.");
             }
@@ -147,8 +157,14 @@ define(['modules/web-rtc-config'], function(configuration) {
          * @param answerSDP
          */
         var processAnswer = function (answerSdp) {
+
             console.log("Setting remote session description.");
-            peerConnection.setRemoteDescription(new SessionDescription(answerSdp));
+
+            var answer = {
+                type: 'answer',
+                sdp : answerSdp
+            }
+            peerConnection.setRemoteDescription(new SessionDescription(answer));
         }
 
         /**
@@ -157,13 +173,18 @@ define(['modules/web-rtc-config'], function(configuration) {
          */
         var processOffer = function (offerSdp) {
             console.log("Setting remote session description.");
-            peerConnection.setRemoteDescription(new SessionDescription(offerSdp), function() {
-                peerConnection.createAnswer(function(answerSDP) {
+
+            var offer = new SessionDescription({
+                type: 'offer',
+                sdp : offerSdp
+            });
+
+            peerConnection.setRemoteDescription(new SessionDescription(offer), function() {
+                peerConnection.createAnswer(function(answerSdp) {
+
                     console.log("Setting local session description.");
-                    peerConnection.setLocalDescription(answerSDP, function() {
-                        signalingService.sendAnswer(answerSDP);
-                    })
-                })
+                    peerConnection.setLocalDescription(answerSdp);
+                }, errorHandler, constraints)
             });
         }
 
